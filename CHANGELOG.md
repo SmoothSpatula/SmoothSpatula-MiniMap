@@ -1,3 +1,6 @@
+### v1.2.0
+* Migrated to RAPI, small refactor
+
 ### v1.1.6
 * Changed to new pre_code_execute released in RoM 1.0.43
 

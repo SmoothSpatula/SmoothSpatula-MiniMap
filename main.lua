@@ -1,8 +1,8 @@
--- Minimap v1.1.6
+-- Minimap v1.2.0
 -- SmoothSpatula
 
-log.info("Successfully loaded ".._ENV["!guid"]..".")
-mods["RoRRModdingToolkit-RoRR_Modding_Toolkit"].auto(true)
+local RAPI = mods["ReturnsAPI-ReturnsAPI"].setup()
+mods["SmoothSpatula-TomlHelper"].auto()
 
 params = {
     toggle_map_key = 77,
@@ -18,9 +18,7 @@ params = {
     x_offset = 0,
     y_offset = 0
 }
-mods.on_all_mods_loaded(function() for k, v in pairs(mods) do if type(v) == "table" and v.tomlfuncs then Toml = v end end 
-    params = Toml.config_update(_ENV["!guid"], params)
-end)
+params = Toml.config_update(_ENV["!guid"], params)
 
 -- ======== Parameters ========
 
@@ -149,97 +147,38 @@ local function draw_map(cam, xscale, yscale, xoffset, yoffset)
     if surf_map == -1 then
         surf_map = gm.surface_create(gm.camera_get_view_width(cam), gm.camera_get_view_height(cam))
     end
+    
     gm.surface_set_target(surf_map)
     gm.draw_clear_alpha(16777215, 0)
 
     local x, y, width, height = nil
     -- Display the floors and walls
-    local oB = Instance.find_all(gm.constants.oB)
-    if oB then 
-        for _, inst in ipairs(oB) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
+    local block_constants = {
+        gm.constants.oB,
+        gm.constants.oBNoSpawn,
+        gm.constants.oBFloorNoSpawn,
+        gm.constants.oBNoSpawn2,
+        gm.constants.oBNoSpawnHalf,
+        gm.constants.oBFloorNoSpawn2,
+        gm.constants.oBInteractableSpawn
+    }
 
-            gm.draw_rectangle(x, y, x+width, y+height, false)
-        end
-    end
-    
-    local oBNoSpawn = Instance.find_all(gm.constants.oBNoSpawn)
-    if oBNoSpawn then 
-        for _, inst in ipairs(oBNoSpawn) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
+    for _, constant in ipairs(block_constants) do
+        local instances = RAPI.Instance.find_all(constant)
+        if instances then
+            for _, inst in ipairs(instances) do
+                local x = xoffset + inst.x * xscale
+                local y = yoffset + inst.y * yscale
+                local width = inst.width_box * xscale * 32
+                local height = inst.height_box * yscale * 32
 
-            gm.draw_rectangle(x, y, x+width, y+height, false)
-        end
-    end
-
-    local oBFloorNoSpawn = Instance.find_all(gm.constants.oBFloorNoSpawn)
-    if oBFloorNoSpawn then 
-        for _, inst in ipairs(oBFloorNoSpawn) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
-
-            gm.draw_rectangle(x, y,x+width, y+height, false)
-        end
-    end
-    
-    local oBNoSpawn2 = Instance.find_all(gm.constants.oBNoSpawn2)
-    if oBNoSpawn2 then 
-        for _, inst in ipairs(oBNoSpawn2) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
-
-            gm.draw_rectangle(x, y, x+width, y+height, false)
-        end
-    end
-    
-    local oBNoSpawnHalf = Instance.find_all(gm.constants.oBNoSpawnHalf)
-    if oBNoSpawnHalf then 
-        for _, inst in ipairs(oBNoSpawnHalf) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
-
-            gm.draw_rectangle(x, y, x+width, y+height, false)
-        end
-    end
-    
-    local oBFloorNoSpawn2 = Instance.find_all(gm.constants.oBFloorNoSpawn2)
-    if oBFloorNoSpawn2 then 
-        for _, inst in ipairs(oBFloorNoSpawn2) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
-
-            gm.draw_rectangle(x, y, x+width, y+height, false)
-        end
-    end
-    
-    local oBInteractableSpawn = Instance.find_all(gm.constants.oBInteractableSpawn)
-    if oBInteractableSpawn then 
-        for _, inst in ipairs(oBInteractableSpawn) do
-            x = xoffset + inst.x * xscale
-            y = yoffset + inst.y * yscale
-            width = inst.width_box * xscale * 32
-            height = inst.height_box * yscale * 32
-
-            gm.draw_rectangle(x, y, x+width, y+height, false)
+                gm.draw_rectangle(x, y, x + width, y + height, false)
+            end
         end
     end
     
     -- Display the ropes
-    local oRope = Instance.find_all(gm.constants.oRope)
+    local oRope = RAPI.Instance.find_all(gm.constants.oRope)
     if oRope then 
         for _, inst in ipairs(oRope) do
             x = xoffset + inst.x * xscale
@@ -252,7 +191,7 @@ local function draw_map(cam, xscale, yscale, xoffset, yoffset)
     end
     
     -- Display the geysers
-    local oGeyser = Instance.find_all(gm.constants.oGeyser)
+    local oGeyser = RAPI.Instance.find_all(gm.constants.oGeyser)
     if oGeyser then 
         for _, inst in ipairs(oGeyser) do
             x = xoffset + inst.x * xscale
@@ -265,7 +204,7 @@ local function draw_map(cam, xscale, yscale, xoffset, yoffset)
     end
     
     -- Display all interactables
-    local pInteractable = Instance.find_all(gm.constants.pInteractable)
+    local pInteractable = RAPI.Instance.find_all(gm.constants.pInteractable)
     if pInteractable and params['toggle_interactables'] then 
         for _, inst in ipairs(pInteractable) do
             if not (inst.active == 2.0 or inst.object_name == "oTeleporter")
@@ -280,8 +219,10 @@ local function draw_map(cam, xscale, yscale, xoffset, yoffset)
         end
     end
     -- Display the teleporter
-    local tp = Instance.find(Instance.teleporters)
-    if tp:exists() and params['toggle_teleporter'] then 
+
+    local tp = RAPI.Instance.find(gm.constants.oTeleporter, 1)
+    if not RAPI.Instance.exists(tp) then tp = RAPI.Instance.find(gm.constants.oTeleporterEpic, 1) end
+    if RAPI.Instance.exists(tp) and params['toggle_teleporter'] then 
         x = xoffset + tp.x * xscale
         y = yoffset + tp.y * yscale
         local tp_xscale = gm.sprite_get_width(tp.sprite_index) * xscale / 2
@@ -290,8 +231,9 @@ local function draw_map(cam, xscale, yscale, xoffset, yoffset)
         gm.draw_rectangle_colour(x-tp_xscale, y-tp_yscale, x+tp_xscale-1, y-1, 8388736, 8388736, 8388736, 8388736, false)
         gm.draw_text_colour(x-tp_xscale+5, y-tp_yscale-12, "TP", 16711935, 16711935, 16711935, 16711935, 1)
     end
-
-    gm.surface_reset_target()
+    if gm.surface_get_target() ~= -1 then
+        gm.surface_reset_target()
+    end
 end
 
 local player_x, player_y, player_xscale, player_yscale, player_colour, local_player, local_player_x, local_player_y = nil
@@ -330,9 +272,9 @@ end
 -- Refresh the map surface when redraw is true
 local cam, ratio, surf_width, surf_height, xscale, yscale, xoffset, yoffset, players = nil
 function init()
-    Callback.add("postHUDDraw", "SmoothSpatula-Minimap-Draw", function()
+    RAPI.Callback.add(RAPI.Callback.POST_HUD_DRAW, "SmoothSpatula-Minimap-Draw", function()
         if not toggle_show_map or not params['minimap_enabled']then return end
-        players = Instance.find_all(gm.constants.oP)
+        players = RAPI.Instance.find_all(gm.constants.oP)
         if not players then return end
 
         cam = gm.view_get_camera(0)
@@ -351,7 +293,7 @@ function init()
         yoffset = (gm.camera_get_view_height(cam) - surf_height) / 2
 
         if surf_map == -1 or redraw then
-            local_player = Player.get_client()
+            local_player = RAPI.Player.get_local()
             local_player = local_player.value
             draw_map(cam, xscale, yscale, xoffset, yoffset) 
             redraw = false
@@ -373,35 +315,41 @@ function init()
     end)
 end
 
-Initialize(init)
+RAPI.Initialize.add(init)
 
+-- Check when chat is open
 gm.pre_code_execute("gml_Object_oInit_Draw_73", function(self, other)
         chat_open = self.chat_talking
 end)
 
 -- Redraw the map for each new stage
-gm.post_script_hook(gm.constants.texture_flush_group, function()
+RAPI.Hook.add_post(gm.constants.texture_flush_group, function()
     redraw = true
 end)
 
 -- Disable mod when run ends
-gm.pre_script_hook(gm.constants.run_destroy, function()
+RAPI.Callback.add(RAPI.Callback.ON_GAME_END, "SmoothSpatula-Minimap-End", function()
     toggle_show_map = false
 end)
 
 -- Redraw the map when zoom scale changes, works with quickzoom mod
-gm.post_script_hook(gm.constants.prefs_set_zoom_scale, function()
+RAPI.Hook.add_post(gm.constants.prefs_set_zoom_scale, function()
     redraw = true
 end)
 
-gm.post_script_hook(gm.constants.interactable_set_active, function(self, other, result, args)
+RAPI.Hook.add_post(gm.constants.instance_create_depth, function(self, other, result, args)
+        redraw = true
+end)
+
+RAPI.Callback.add(RAPI.Callback.ON_INTERACTABLE_ACTIVATE, "SmoothSpatula-Minimap-Interactable", function(inst)
     if params['toggle_interactables'] then
         redraw = true
     end
 end)
 
-gm.post_script_hook(gm.constants.interactable_sync, function(self, other, result, args)
+RAPI.Hook.add_post(gm.constants.interactable_sync, function(self, other, result, args)
     if params['toggle_interactables'] then
         redraw = true
     end
 end)
+log.info("Successfully loaded ".._ENV["!guid"]..".")
